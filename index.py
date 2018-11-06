@@ -31,7 +31,8 @@ def index():
     data = Link.query.all()
     for each in data:
         link = {'id':each.ids,'title':each.title,'url':each.short_link,'clicks':each.clicks}
-        pass_through.append(link)
+        pass_through = [link] + pass_through
+
     return(render_template('index.html', contents=pass_through))
 
 @app.route('/shorten', methods=['POST'])
@@ -62,7 +63,6 @@ def url_locator(url):
     for each in data:
         linked = {'id': each.ids, 'title': each.title,'url': each.long_link, 'clicks': each.clicks}
         links.append(linked)
-    print(str(links))
     return redirect(links[0]['url'])
 
 
