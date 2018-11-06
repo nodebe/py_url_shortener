@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for,redirect
 from flask_sqlalchemy import SQLAlchemy
 import json, secrets, random
 
@@ -15,7 +15,7 @@ class Links(db.Model):
     clicks = db.Column(db.Integer, nullable=True, default=0)
 
     def __repr__(self):
-        return f"links('{self.ids}','{self.title}','{self.long_link}',''{self.short_link}','{self.short_links}')"
+        return f"Links('{self.ids}','{self.title}','{self.long_link}',''{self.short_link}','{self.clicks}')"
 
 
 # link2 = Links(title='Facebook',
@@ -26,8 +26,13 @@ class Links(db.Model):
 
 @app.route('/')
 def index():
-
-    return(render_template('index.html'))
+    Link = Links()
+    pass_through = []
+    data = Link.query.all()
+    for each in data:
+        link = {'id':each.ids,'title':each.title,'url':each.short_link,'clicks':each.clicks}
+        pass_through.append(link)
+    return(render_template('index.html', contents=pass_through))
 
 @app.route('/shorten', methods=['POST'])
 def shorten():
@@ -36,17 +41,34 @@ def shorten():
         data = key
     data_dic = json.loads(data)
     info = data_dic["values"]
-    title = info.title
-    long_link = info.link
+    title = info[0]
+    long_link = info[1]
     short_link = short_url()
     server = 'http://127.0.0.1:5000/'
     add_link = Links(title=title, long_link=long_link, short_link=server+short_link)
     db.session.add(add_link)
     db.session.commit()
+    resp = {'message':'Link created', 'link':server+short_link}
+    response = jsonify(resp)
+    response.headers['Access-Control-Allow-Origin']='*'
+    return response
+
+@app.route('/<string:url>')
+def url_locator(url):
+    Link = Links()
+    links = []
+    server = 'http://127.0.0.1:5000/'+url
+    data = Link.query.filter_by(short_link = server).all()
+    for each in data:
+        linked = {'id': each.ids, 'title': each.title,'url': each.long_link, 'clicks': each.clicks}
+        links.append(linked)
+    print(str(links))
+    return redirect(links[0]['url'])
+
 
 #function for creating random short link
 def short_url():
-    token = secrets.token_hex(16)[:6]
+    token = secrets.token_hex(16)[:7]
     new_token = ' '.join(token).split(' ')
     main_id = ''.join(random.sample(new_token, len(new_token)-1))
     return (main_id)

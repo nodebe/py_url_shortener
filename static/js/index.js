@@ -9,14 +9,10 @@ $(document).ready(function(){
                 if (url.length > 15) {
                     var dir = '/shorten'
                     var server = 'http://127.0.0.1:5000'
-                    $.ajax({
-                        type: "POST",
-                        url:server+dir,
-                        data: JSON.stringify(url_info),
-                        data_type: 'json'
-                    }).done(function(result){
-                        console.log(result)
-                    }) 
+                    $.post(server+dir,JSON.stringify(url_info),function(response){
+                        alert(JSON.stringify(response))
+                        console.log(response)
+                    })
                 }else{
                     $('#error').text("Url must be higher than 15 characters long!");
                     $('#error').show(300);
@@ -30,3 +26,11 @@ $(document).ready(function(){
         }
     });
 });
+/* ({
+                        type: "POST",
+                        url:server+dir,
+                        data: JSON.stringify(url_info),
+                        data_type: 'json'
+                    }).done(function(result){
+                        console.log(result)
+                    }) */
