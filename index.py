@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
+import json, secrets, random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dbad458706654a1bf4c4248f15bdf135'
@@ -25,10 +26,30 @@ class Links(db.Model):
 
 @app.route('/')
 def index():
-    
+
     return(render_template('index.html'))
 
+@app.route('/shorten', methods=['POST'])
+def shorten():
+    rf = request.form
+    for key in rf.keys():
+        data = key
+    data_dic = json.loads(data)
+    info = data_dic["values"]
+    title = info.title
+    long_link = info.link
+    short_link = short_url()
+    server = 'http://127.0.0.1:5000/'
+    add_link = Links(title=title, long_link=long_link, short_link=server+short_link)
+    db.session.add(add_link)
+    db.session.commit()
 
+#function for creating random short link
+def short_url():
+    token = secrets.token_hex(16)[:6]
+    new_token = ' '.join(token).split(' ')
+    main_id = ''.join(random.sample(new_token, len(new_token)-1))
+    return (main_id)
 
 if __name__ == '__main__':
     app.run(debug=True)
